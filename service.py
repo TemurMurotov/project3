@@ -1,36 +1,41 @@
 import requests
-from bs4 import BeautifulSoup
 
 
 class News:
-    def __init__(self, title, link):
+    def __init__(self, title, tournament):
         self.title = title
-        self.link = link
+        self.tournament = tournament
 
 
-def get_news():
-    url = "https://kun.uz"
+def get_matches():
+    url = "https://api.sofascore.com/api/v1/sport/football/events/live"
 
-    response = requests.get(url)
+    headers = {
+        "User-Agent": "Mozilla/5.0"
+    }
 
-    soup = BeautifulSoup(response.text, "html.parser")
+    response = requests.get(url, headers=headers)
 
-    news_list = []
+    data = response.json()
 
-    articles = soup.find_all("a", class_="small-news__title")
+    matches = []
 
-    for article in articles[:5]:
-        title = article.text.strip()
-        link = article.get("href")
+    events = data["events"]
 
-        if link.startswith("/"):
-            link = "https://kun.uz" + link
+    for event in events[:5]:
 
-        news = News(title, link)
+        home = event["homeTeam"]["name"]
+        away = event["awayTeam"]["name"]
 
-        news_list.append({
-            "title": news.title,
-            "link": news.link
+        title = f"{home} vs {away}"
+
+        tournament = event["tournament"]["name"]
+
+        match = News(title, tournament)
+
+        matches.append({
+            "title": match.title,
+            "tournament": match.tournament
         })
 
-    return news_list
+    return matches
